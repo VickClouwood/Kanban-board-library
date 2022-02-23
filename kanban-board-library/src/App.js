@@ -3,7 +3,7 @@ import "./App.css";
 import React, { Component } from "react";
 import Board from "react-trello";
 
-const data = require("./data.json");
+const data = require("http://localhost:3000/lanes");
 
 const handleDragStart = (cardId, laneId) => {
   console.log("drag started");
@@ -25,6 +25,30 @@ class App extends Component {
     this.setState({ eventBus });
   };
 
+  componentDidMount() {
+    fetch("http://localhost:3000/lanes")
+      .then((response) => response.json())
+      .then((data) => this.setState({ boardData: data }));
+  }
+
+  //create a function to send a post request to the server
+  postCard = (card) => {
+    console.log(card);
+    fetch("http://localhost:3000/lanes", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(card),
+    })
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
   async componentWillMount() {
     const response = await this.getBoard();
     this.setState({ boardData: response });
@@ -35,6 +59,16 @@ class App extends Component {
       resolve(data);
     });
   }
+
+  // postBoard = (board) => {
+  //   fetch("https://my-json-server.typicode.com/VickClouwood/FAKE-API/db", {
+  //     method: "POST",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //     },
+  //     body: JSON.stringify(board),
+  //   });
+  // };
 
   completeCard = () => {
     this.state.eventBus.publish({
@@ -75,6 +109,19 @@ class App extends Component {
   handleCardAdd = (card, laneId) => {
     console.log(`New card added to lane ${laneId}`);
     console.dir(card);
+    this.postCard(card);
+  };
+
+  //create a submit button to post the data to the api
+  handleSubmit = (e) => {
+    e.preventDefault();
+    const card = {
+      id: "Milk",
+      title: "Buy Milk",
+      label: "15 mins",
+      description: "Use Headspace app",
+    };
+    this.postCard(card);
   };
 
   render() {
@@ -93,6 +140,7 @@ class App extends Component {
           <Board
             editable
             onCardAdd={this.handleCardAdd}
+            // onCardPost={this.postCard}
             data={this.state.boardData}
             draggable
             onDataChange={this.shouldReceiveNewData}
