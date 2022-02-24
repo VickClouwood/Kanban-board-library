@@ -3,7 +3,7 @@ import "./App.css";
 import React, { Component } from "react";
 import Board from "react-trello";
 
-const data = require("http://localhost:3000/lanes");
+const data = require("http://localhost:3000");
 
 const handleDragStart = (cardId, laneId) => {
   console.log("drag started");
@@ -28,26 +28,13 @@ class App extends Component {
   componentDidMount() {
     fetch("http://localhost:3000/lanes")
       .then((response) => response.json())
-      .then((data) => this.setState({ boardData: data }));
+      .then((data) => {
+        console.log(data);
+        this.setState({ boardData: { lanes: data } });
+      });
   }
 
-  //create a function to send a post request to the server
-  postCard = (card) => {
-    console.log(card);
-    fetch("http://localhost:3000/lanes", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(card),
-    })
-      .then((res) => {
-        console.log(res);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
+  //create a function to send a PUT request to the server
 
   async componentWillMount() {
     const response = await this.getBoard();
