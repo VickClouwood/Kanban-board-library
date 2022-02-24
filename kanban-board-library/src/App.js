@@ -165,6 +165,8 @@ function App() {
 
 export default App;
 
+// Please don't delete, saved for future reference
+
 //class-based component
 
 // import "./App.css";
