@@ -1,6 +1,5 @@
 import "./App.css";
-
-import React, { Component } from "react";
+import React, { useState, useEffect } from "react";
 import Board from "react-trello";
 
 const data = require("http://localhost:3000");
@@ -18,47 +17,84 @@ const handleDragEnd = (cardId, sourceLaneId, targetLaneId) => {
   console.log(`targetLaneId: ${targetLaneId}`);
 };
 
-class App extends Component {
-  state = { boardData: { lanes: [] } };
+function App() {
+  const [state, setState1] = React.useState({
+    boardData: { lanes: [] },
+  });
+  // state = { boardData: { lanes: [] } };
 
-  setEventBus = (eventBus) => {
-    this.setState({ eventBus });
+  const setEventBus = (eventBus) => {
+    setState1({ eventBus });
   };
 
-  componentDidMount() {
+  // componentDidMount() {
+  //   fetch("http://localhost:3000/lanes")
+  //     .then((response) => response.json())
+  //     .then((data) => {
+  //       console.log(data);
+  //       this.setState({ boardData: { lanes: data } });
+  //     });
+  // }
+
+  useEffect(() => {
     fetch("http://localhost:3000/lanes")
       .then((response) => response.json())
       .then((data) => {
         console.log(data);
-        this.setState({ boardData: { lanes: data } });
+        setState1({ boardData: { lanes: data } });
+      });
+  }, []);
+
+  // create a PUT request to the server when we add a new card
+  function postCard(card) {
+    fetch("http://localhost:3000/lanes/PLANNED", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(card),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data);
+        setState1({ boardData: { lanes: { PLANNED: data } } });
       });
   }
 
-  //create a function to send a PUT request to the server
+  // create a delete request to delete a card from api
+  // const deleteCard = (cardId) => {
+  //   fetch(`http://localhost:3000/lanes/${cardId}`, {
+  //     method: "DELETE",
+  //   })
+  //     .then((response) => response.json())
+  //     .then((data) => {
+  //       console.log(data);
+  //       setState1({ ...data, boardData: { lanes: data } });
+  //     });
+  // };
 
-  async componentWillMount() {
+  // async componentWillMount() {
+  //   const response = await this.getBoard();
+  //   this.setState({ boardData: response });
+  // }
+
+  async function abc() {
     const response = await this.getBoard();
-    this.setState({ boardData: response });
+    setState1({ boardData: response });
   }
 
-  getBoard() {
+  useEffect(() => {
+    abc();
+  }, []);
+
+  function getBoard() {
     return new Promise((resolve) => {
       resolve(data);
     });
   }
 
-  // postBoard = (board) => {
-  //   fetch("https://my-json-server.typicode.com/VickClouwood/FAKE-API/db", {
-  //     method: "POST",
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //     },
-  //     body: JSON.stringify(board),
-  //   });
-  // };
-
-  completeCard = () => {
-    this.state.eventBus.publish({
+  const completeCard = () => {
+    state.eventBus.publish({
       type: "ADD_CARD",
       laneId: "COMPLETED",
       card: {
@@ -68,15 +104,15 @@ class App extends Component {
         description: "Use Headspace app",
       },
     });
-    this.state.eventBus.publish({
+    state.eventBus.publish({
       type: "REMOVE_CARD",
       laneId: "PLANNED",
       cardId: "Milk",
     });
   };
 
-  addCard = () => {
-    this.state.eventBus.publish({
+  const addCard = () => {
+    state.eventBus.publish({
       type: "ADD_CARD",
       laneId: "BLOCKED",
       card: {
@@ -88,67 +124,55 @@ class App extends Component {
     });
   };
 
-  shouldReceiveNewData = (nextData) => {
+  const shouldReceiveNewData = (nextData) => {
     console.log("New card has been added");
     console.log(nextData);
   };
 
-  handleCardAdd = (card, laneId) => {
+  const handleCardAdd = (card, laneId) => {
     console.log(`New card added to lane ${laneId}`);
     console.dir(card);
-    this.postCard(card);
+    postCard(card);
   };
 
-  //create a submit button to post the data to the api
-  handleSubmit = (e) => {
-    e.preventDefault();
-    const card = {
-      id: "Milk",
-      title: "Buy Milk",
-      label: "15 mins",
-      description: "Use Headspace app",
-    };
-    this.postCard(card);
-  };
-
-  render() {
-    return (
-      <div className="App">
-        <div className="App-header">
-          <h3>React Trello Demo</h3>
-        </div>
-        <div className="App-intro">
-          <button onClick={this.completeCard} style={{ margin: 5 }}>
-            Complete Buy Milk
-          </button>
-          <button onClick={this.addCard} style={{ margin: 5 }}>
-            Add Blocked
-          </button>
-          <Board
-            editable
-            onCardAdd={this.handleCardAdd}
-            // onCardPost={this.postCard}
-            data={this.state.boardData}
-            draggable
-            onDataChange={this.shouldReceiveNewData}
-            eventBusHandle={this.setEventBus}
-            handleDragStart={handleDragStart}
-            handleDragEnd={handleDragEnd}
-          />
-        </div>
+  return (
+    <div className="App">
+      <div className="App-header">
+        <h3>React Trello Demo</h3>
       </div>
-    );
-  }
+      <div className="App-intro">
+        <button onClick={completeCard} style={{ margin: 5 }}>
+          Complete Buy Milk
+        </button>
+        <button onClick={addCard} style={{ margin: 5 }}>
+          Add Blocked
+        </button>
+        <Board
+          editable
+          onCardAdd={handleCardAdd}
+          data={state.boardData}
+          // onCardDelete={deleteCard}
+          draggable
+          onDataChange={shouldReceiveNewData}
+          eventBusHandle={setEventBus}
+          handleDragStart={handleDragStart}
+          handleDragEnd={handleDragEnd}
+        />
+      </div>
+    </div>
+  );
 }
 
 export default App;
 
+//class-based component
+
 // import "./App.css";
 
-// import React, { useEffect, useState } from "react";
+// import React, { Component } from "react";
 // import Board from "react-trello";
 
-// const data = require("./data.json");
+// const data = require("http://localhost:3000");
 
 // const handleDragStart = (cardId, laneId) => {
 //   console.log("drag started");
@@ -163,28 +187,35 @@ export default App;
 //   console.log(`targetLaneId: ${targetLaneId}`);
 // };
 
-// function App() {
-//   const [data, setData] = useState({ boardData: { lanes: [] } });
-//   // const [boardData, setBoardData] = useState(data);
+// class App extends Component {
+//   state = { boardData: { lanes: [] } };
 
-//   // setEventBus = (eventBus) => {
-//   //   setState({ eventBus });
-//   // };
-//   const [eventBus, setEventBus] = useState(null);
+//   setEventBus = (eventBus) => {
+//     this.setState({ eventBus });
+//   };
 
-//   useEffect(async () => {
-//     const response = await getBoard();
-//     setData({ boardData: response });
-//   }, []);
+//   componentDidMount() {
+//     fetch("http://localhost:3000/lanes")
+//       .then((response) => response.json())
+//       .then((data) => {
+//         console.log(data);
+//         this.setState({ boardData: { lanes: data } });
+//       });
+//   }
 
-//   function getBoard() {
+//   async componentWillMount() {
+//     const response = await this.getBoard();
+//     this.setState({ boardData: response });
+//   }
+
+//   getBoard() {
 //     return new Promise((resolve) => {
 //       resolve(data);
 //     });
 //   }
 
-//   const completeCard = () => {
-//     eventBus.publish({
+//   completeCard = () => {
+//     this.state.eventBus.publish({
 //       type: "ADD_CARD",
 //       laneId: "COMPLETED",
 //       card: {
@@ -194,15 +225,15 @@ export default App;
 //         description: "Use Headspace app",
 //       },
 //     });
-//     eventBus.publish({
+//     this.state.eventBus.publish({
 //       type: "REMOVE_CARD",
 //       laneId: "PLANNED",
 //       cardId: "Milk",
 //     });
 //   };
 
-//   const addCard = () => {
-//     eventBus.publish({
+//   addCard = () => {
+//     this.state.eventBus.publish({
 //       type: "ADD_CARD",
 //       laneId: "BLOCKED",
 //       card: {
@@ -214,41 +245,44 @@ export default App;
 //     });
 //   };
 
-//   const shouldReceiveNewData = (nextData) => {
+//   shouldReceiveNewData = (nextData) => {
 //     console.log("New card has been added");
 //     console.log(nextData);
 //   };
 
-//   const handleCardAdd = (card, laneId) => {
+//   handleCardAdd = (card, laneId) => {
 //     console.log(`New card added to lane ${laneId}`);
 //     console.dir(card);
+//     this.postCard(card);
 //   };
 
-//   return (
-//     <div className="App">
-//       <div className="App-header">
-//         <h3>React Trello Demo</h3>
+//   render() {
+//     return (
+//       <div className="App">
+//         <div className="App-header">
+//           <h3>React Trello Demo</h3>
+//         </div>
+//         <div className="App-intro">
+//           <button onClick={this.completeCard} style={{ margin: 5 }}>
+//             Complete Buy Milk
+//           </button>
+//           <button onClick={this.addCard} style={{ margin: 5 }}>
+//             Add Blocked
+//           </button>
+//           <Board
+//             editable
+//             onCardAdd={this.handleCardAdd}
+//             data={this.state.boardData}
+//             draggable
+//             onDataChange={this.shouldReceiveNewData}
+//             eventBusHandle={this.setEventBus}
+//             handleDragStart={handleDragStart}
+//             handleDragEnd={handleDragEnd}
+//           />
+//         </div>
 //       </div>
-//       <div className="App-intro">
-//         <button onClick={this.completeCard} style={{ margin: 5 }}>
-//           Complete Buy Milk
-//         </button>
-//         <button onClick={this.addCard} style={{ margin: 5 }}>
-//           Add Blocked
-//         </button>
-//         <Board
-//           editable
-//           onCardAdd={this.handleCardAdd}
-//           data={this.state.boardData}
-//           draggable
-//           onDataChange={this.shouldReceiveNewData}
-//           eventBusHandle={this.setEventBus}
-//           handleDragStart={handleDragStart}
-//           handleDragEnd={handleDragEnd}
-//         />
-//       </div>
-//     </div>
-//   );
+//     );
+//   }
 // }
 
 // export default App;
