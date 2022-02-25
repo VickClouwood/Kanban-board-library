@@ -57,7 +57,7 @@ function App() {
       .then((response) => response.json())
       .then((data) => {
         console.log(data);
-        setState1({ boardData: { lanes: { PLANNED: data } } });
+        setState1({ boardData: { lanes: { PLANNED: { ...data, data } } } });
       });
   }
 
