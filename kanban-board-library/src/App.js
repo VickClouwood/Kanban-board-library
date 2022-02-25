@@ -46,6 +46,7 @@ function App() {
   }, []);
 
   // create a PUT request to the server when we add a new card
+  // Not working yet
   function postCard(card) {
     fetch("http://localhost:3000/lanes/PLANNED", {
       method: "POST",
@@ -57,26 +58,25 @@ function App() {
       .then((response) => response.json())
       .then((data) => {
         console.log(data);
-        setState1({ boardData: { lanes: { PLANNED: { ...data, data } } } });
+        setState1({
+          ...data.conversations,
+          boardData: { lanes: { PLANNED: { data } } },
+        });
       });
   }
 
   // create a delete request to delete a card from api
-  // const deleteCard = (cardId) => {
-  //   fetch(`http://localhost:3000/lanes/${cardId}`, {
-  //     method: "DELETE",
-  //   })
-  //     .then((response) => response.json())
-  //     .then((data) => {
-  //       console.log(data);
-  //       setState1({ ...data, boardData: { lanes: data } });
-  //     });
-  // };
-
-  // async componentWillMount() {
-  //   const response = await this.getBoard();
-  //   this.setState({ boardData: response });
-  // }
+  // Not working yet
+  const deleteCard = (cardId) => {
+    fetch(`http://localhost:3000/lanes/${cardId}`, {
+      method: "DELETE",
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data);
+        setState1({ ...data, boardData: { lanes: data } });
+      });
+  };
 
   async function abc() {
     const response = await this.getBoard();
@@ -93,36 +93,36 @@ function App() {
     });
   }
 
-  const completeCard = () => {
-    state.eventBus.publish({
-      type: "ADD_CARD",
-      laneId: "COMPLETED",
-      card: {
-        id: "Milk",
-        title: "Buy Milk",
-        label: "15 mins",
-        description: "Use Headspace app",
-      },
-    });
-    state.eventBus.publish({
-      type: "REMOVE_CARD",
-      laneId: "PLANNED",
-      cardId: "Milk",
-    });
-  };
+  // const completeCard = () => {
+  //   state.eventBus.publish({
+  //     type: "ADD_CARD",
+  //     laneId: "COMPLETED",
+  //     card: {
+  //       id: "Milk",
+  //       title: "Buy Milk",
+  //       label: "15 mins",
+  //       description: "Use Headspace app",
+  //     },
+  //   });
+  //   state.eventBus.publish({
+  //     type: "REMOVE_CARD",
+  //     laneId: "PLANNED",
+  //     cardId: "Milk",
+  //   });
+  // };
 
-  const addCard = () => {
-    state.eventBus.publish({
-      type: "ADD_CARD",
-      laneId: "BLOCKED",
-      card: {
-        id: "Ec2Error",
-        title: "EC2 Instance Down",
-        label: "30 mins",
-        description: "Main EC2 instance down",
-      },
-    });
-  };
+  // const addCard = () => {
+  //   state.eventBus.publish({
+  //     type: "ADD_CARD",
+  //     laneId: "BLOCKED",
+  //     card: {
+  //       id: "Ec2Error",
+  //       title: "EC2 Instance Down",
+  //       label: "30 mins",
+  //       description: "Main EC2 instance down",
+  //     },
+  //   });
+  // };
 
   const shouldReceiveNewData = (nextData) => {
     console.log("New card has been added");
@@ -141,12 +141,12 @@ function App() {
         <h3>React Trello Demo</h3>
       </div>
       <div className="App-intro">
-        <button onClick={completeCard} style={{ margin: 5 }}>
+        {/* <button onClick={completeCard} style={{ margin: 5 }}>
           Complete Buy Milk
-        </button>
-        <button onClick={addCard} style={{ margin: 5 }}>
+        </button> */}
+        {/* <button onClick={addCard} style={{ margin: 5 }}>
           Add Blocked
-        </button>
+        </button> */}
         <Board
           editable
           onCardAdd={handleCardAdd}
